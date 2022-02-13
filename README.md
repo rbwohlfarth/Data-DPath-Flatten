@@ -1,19 +1,25 @@
-# Local-Upload-Script
+**Data-DPath-Flatten** is Copyright (C) 2022, Robert Wohlfarth
 
-CPPA specific extensions for `ETL::Pipeline`. `ETL::Pipeline` provides the base functionality that we use to convert data from partner sites into our database format. These modules add extra sugar that make our scripts easier to read.
+This module converts an arbitrary Perl data structure into a flat list of 
+key/value pairs. The keys are `Data::DPath` path strings that reach the 
+corresponding value.
 
-Install this repository in your local Perl instance.
+I wanted to copy raw data files of varying structure into an SQL database. In
+combination with other modules, I can read JSON, XML, Excel, or CSV data. Then
+store them in the exact same SQL table.
 
-1. `git pull`
+# INSTALLATION
+
 1. `perl Makefile.PL`
-1. `gmake`
-1. `gmake test`
-    - If there is an error, please contact the application developers. **DO NOT install.** Upload scripts will break.
-1. `gmake install`
+1. `make`
+1. `make test`
+1. `make install`
 
-## Migrating old scripts
+# LICENSE INFORMATION
 
-See the documentation for details about migrating old scripts based on 
-**Data::ETL::PARS** to **Local::Upload::Script**.
+This module is free software; you can redistribute it and/or modify it under the
+same terms as Perl 5.10.0. For details, see the full text of the license in the
+file LICENSE.
 
-`perldoc Local::Upload::Script`
+This program is distributed in the hope that it will be useful, but without any
+warranty; without even the implied

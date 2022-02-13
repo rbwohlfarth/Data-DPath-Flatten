@@ -178,15 +178,15 @@ L<https://github.com/rbwohlfarth/Data-DPath-Flatten>
 
 =head1 AUTHOR
 
-Robert Wohlfarth <robert.j.wohlfarth@vumc.org>
+Robert Wohlfarth <rbwohlfarth@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2021  Robert Wohlfarth
+Copyright (c) 2022  Robert Wohlfarth
 
 This module is free software; you can redistribute it and/or modify it
-under the same terms as Perl 5.10.0. For more details, see the full text
-of the licenses in the directory LICENSES.
+under the same terms as Perl 5.10.0. For details, see the full text of the 
+license in the file LICENSE.
 
 This program is distributed in the hope that it will be useful, but
 without any warranty; without even the implied
