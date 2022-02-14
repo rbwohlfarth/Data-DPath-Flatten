@@ -183,6 +183,24 @@ compare( 'Aliases overwrites field',
 	], ['/A' => '/C/D']
 );
 
+subtest 'Infinite loop' => sub {
+	my (@a, @b);
+	@a = (1, \@b);
+	@b = (2, \@a);
+	compare( 'Array', \@a, [
+		'/*[0]'      => 1,
+		'/*[1]/*[0]' => 2,
+	] );
+
+	my (%a, %b);
+	%a = (A => 1, B => \%b);
+	%b = (C => 2, D => \%a);
+	compare( 'Hash', \%a, [
+		'/A'   => 1,
+		'/B/C' => 2,
+	] );
+};
+
 done_testing();
 
 

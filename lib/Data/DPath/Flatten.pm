@@ -26,7 +26,7 @@ later based on the XML tags or column headers from Excel.
 
 Use B<Data::DPath::Flatten> where you need key/value pairs from arbitrary data.
 The module traverses nested data structures of any depth and converts into a 
-single dimension hash.
+single dimension.
 
 =cut
 
@@ -35,6 +35,7 @@ package Data::DPath::Flatten;
 use 5.14.0;
 use Carp;
 use Data::DPath qw/dpath/;
+use Data::Visitor::Callback;
 use Exporter qw/import/;
 use List::AllUtils qw/pairs/;
 
@@ -83,7 +84,8 @@ than one value, B<flatten> adds each value to the output with the same name.
 =head4 References
 
 When B<flatten> encounters a HASH or ARRAY reference, it recursively traverses
-the nested structure.
+the nested structure. Circular references are traversed only once, to avoid 
+infinite loops.
 
 SCALAR references are dereferenced and the value stored.
 
@@ -106,8 +108,8 @@ sub flatten {
 	
 	# Flatten the original data into a one level hash. Make sure I get a new
 	# reference for every call.
-	my $new = [];
-	_step( $data, $new, '' );
+	my $new  = [];
+	_step( $data, $new, '', {} );
 
 	# Add aliases. Data from files might have column headers. This way I can
 	# look up data by it's path or column name.
@@ -117,9 +119,9 @@ sub flatten {
 		if (defined $options) {
 			if    (ref( $options ) eq 'ARRAY') { @aliases = @$options; }
 			elsif (ref( $options ) eq 'HASH' ) { @aliases = %$options; }
-			else { carp 'Aliases must be either an ARRAY reference or a HASH reference'; }
+			else { croak 'Aliases must be either an ARRAY reference or a HASH reference'; }
 		}
-	} elsif (scalar( @_ ) % 2) { carp 'Aliases ARRAY must have an even number of items'; }
+	} elsif (scalar( @_ ) % 2) { croak 'Aliases ARRAY must have an even number of items'; }
 	else { @aliases = @_; }
 
 	foreach my $pair (pairs @aliases) {
@@ -140,9 +142,18 @@ sub flatten {
 
 # Recursively traverse the data structure, building the path string as it goes.
 # The initial path is an empty string. This code adds the leading "/".
+# 
+# The $seen parameter stops circular references from causing infinite loops. We
+# traverse any reference only once.
+# 
+# I looked into using existing data traversal modules such as Data::Rmap, 
+# Data::Traverse, Data::Visitor, or Data::Walk. Simple recurrsion was so much
+# easier. I would have to use all kinds of gloabl variables and conditionals
+# just to build the correct paths. This works and handles circular references.
 sub _step {
-	my ($from, $to, $path) = @_;
+	my ($from, $to, $path, $seen) = @_;
 
+	# Process this node of the structure.
 	if (!defined( $from )) { 
 		# No op!
 	} elsif (ref( $from ) eq '') { 
@@ -152,18 +163,25 @@ sub _step {
 		if ($path eq '') { push @$to, '/'  , $$from; }
 		else             { push @$to, $path, $$from; }
 	} elsif (ref( $from) eq 'HASH') {
-		while (my ($key, $value) = each %$from) {
-			$key = "\"$key\"" if m/\.\.|\*|::ancestor(-or-self)?|\/\/|\[|\]/;
-			_step( $value, $to, "$path/$key" );
+		unless (exists $seen->{$from}) {
+			$seen->{$from}++;
+			while (my ($key, $value) = each %$from) {
+				$key = "\"$key\"" if m/\.\.|\*|::ancestor(-or-self)?|\/\/|\[|\]/;
+				_step( $value, $to, "$path/$key", $seen );
+			}
 		}
 	} elsif (ref( $from ) eq 'ARRAY') {
-		while (my ($index, $value) = each @$from) {
-			_step( $value, $to, "$path/*[$index]" );
+		unless (exists $seen->{$from}) {
+			$seen->{$from}++;
+			while (my ($index, $value) = each @$from) {
+				_step( $value, $to, "$path/*[$index]", $seen );
+			}
 		}
 	} else {
 		if ($path eq '') { push @$to, '/'  , $from; }
 		else             { push @$to, $path, $from; }
 	}
+
 	return;
 }
 
