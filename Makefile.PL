@@ -8,9 +8,7 @@ all_from 'lib/Data/DPath/Flatten.pm';
 
 # The application needs these modules to work.
 requires 'Carp';
-requires 'Data::DPath';
 requires 'Exporter';
-requires 'List::AllUtils';
 
 # The unit tests need these modules. The application, however, works fine
 # without them.
